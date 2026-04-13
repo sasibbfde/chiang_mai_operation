@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chiang Mai Operations Dashboard</title>
+  <style>
+    :root {
+      --bg: #0f1115;
+      --panel: #171a21;
+      --panel-2: #1d212b;
+      --gold: #d4af37;
+      --gold-soft: #f1d98a;
+      --text: #f4f4f4;
+      --muted: #a6adbb;
+      --line: rgba(255,255,255,0.08);
+      --danger: #ff6b6b;
+      --success: #42c98f;
+      --shadow: 0 16px 40px rgba(0,0,0,0.35);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(212,175,55,0.12), transparent 24%),
+        radial-gradient(circle at top left, rgba(212,175,55,0.08), transparent 20%),
+        linear-gradient(180deg, #0c0e12 0%, #11141a 100%);
+      color: var(--text);
+      min-height: 100%;
+      scroll-behavior: smooth;
+    }
+
+    .app-shell {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(9, 11, 16, 0.72);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-badge {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      background: linear-gradient(135deg, #c79810, #f3df98);
+      color: #111;
+      box-shadow: 0 8px 24px rgba(212,175,55,0.28);
+    }
+
+    .brand-text h1 {
+      margin: 0;
+      font-size: 1.15rem;
+      letter-spacing: 0.4px;
+    }
+
+    .brand-text p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .role-pill,
+    .mini-btn {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.03);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 0.92rem;
+    }
+
+    .mini-btn {
+      cursor: pointer;
+      transition: 0.25s ease;
+    }
+
+    .mini-btn:hover {
+      border-color: rgba(212,175,55,0.5);
+      color: var(--gold-soft);
+      transform: translateY(-1px);
+    }
+
+    .main {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .sidebar {
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(18,20,27,0.95), rgba(14,16,21,0.95));
+      padding: 20px 16px;
+    }
+
+    .menu-title {
+      color: var(--gold-soft);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      margin: 6px 10px 14px;
+    }
+
+    .menu {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .menu-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 14px;
+      border-radius: 16px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      text-align: left;
+      transition: 0.25s ease;
+    }
+
+    .menu-btn:hover,
+    .menu-btn.active {
+      background: linear-gradient(180deg, rgba(212,175,55,0.13), rgba(212,175,55,0.06));
+      border-color: rgba(212,175,55,0.32);
+      transform: translateX(2px);
+    }
+
+    .menu-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: rgba(255,255,255,0.05);
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .menu-text strong {
+      display: block;
+      font-size: 0.96rem;
+    }
+
+    .menu-text span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin-top: 3px;
+      line-height: 1.25;
+    }
+
+    .content {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .hero {
+      padding: 24px 24px 16px;
+    }
+
+    .hero-card {
+      background: linear-gradient(135deg, rgba(212,175,55,0.12), rgba(255,255,255,0.03));
+      border: 1px solid rgba(212,175,55,0.18);
+      border-radius: 26px;
+      padding: 24px;
+      box-shadow: var(--shadow);
+      display: grid;
+      grid-template-columns: 1.3fr 0.7fr;
+      gap: 18px;
+    }
+
+    .hero-card h2 {
+      margin: 0 0 8px;
+      font-size: 1.7rem;
+    }
+
+    .hero-card p {
+      margin: 0;
+      color: #d7dbe3;
+      line-height: 1.6;
+      max-width: 750px;
+    }
+
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(140px, 1fr));
+      gap: 12px;
+      align-self: stretch;
+    }
+
+    .stat-box {
+      background: rgba(0,0,0,0.18);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .stat-box .label {
+      color: var(--muted);
+      font-size: 0.82rem;
+      margin-bottom: 8px;
+    }
+
+    .stat-box .value {
+      font-size: 1.02rem;
+      font-weight: 800;
+      color: var(--gold-soft);
+      line-height: 1.3;
+    }
+
+    .portal-grid {
+      padding: 8px 24px 24px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px;
+    }
+
+    .portal-card {
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      min-height: 230px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .portal-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #a97b00, #f0d278);
+    }
+
+    .portal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .portal-icon {
+      width: 54px;
+      height: 54px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      font-size: 1.3rem;
+      background: rgba(212,175,55,0.12);
+      border: 1px solid rgba(212,175,55,0.2);
+      color: var(--gold-soft);
+    }
+
+    .portal-tag {
+      font-size: 0.75rem;
+      color: #111;
+      background: var(--gold-soft);
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .portal-card h3 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    .portal-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.55;
+    }
+
+    .portal-actions {
+      margin-top: auto;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 14px;
+      padding: 11px 14px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.9rem;
+      transition: 0.25s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #c89d1a, #f2dc90);
+      color: #111;
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      opacity: 0.95;
+    }
+
+    .viewer-wrap {
+      padding: 0 24px 24px;
+      flex: 1;
+      min-height: 420px;
+    }
+
+    .viewer-card {
+      height: 100%;
+      min-height: 520px;
+      background: linear-gradient(180deg, #11141b, #181d26);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .viewer-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,0.02);
+    }
+
+    .viewer-top h4 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .viewer-top p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    .viewer-frame {
+      flex: 1;
+      width: 100%;
+      border: none;
+      background: #fff;
+    }
+
+    .empty-state {
+      height: 100%;
+      min-height: 460px;
+      display: grid;
+      place-items: center;
+      padding: 30px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .empty-state-inner {
+      max-width: 540px;
+    }
+
+    .empty-state-inner .big {
+      font-size: 3rem;
+      margin-bottom: 10px;
+    }
+
+    .footer {
+      border-top: 1px solid var(--line);
+      padding: 14px 24px;
+      color: var(--muted);
+      font-size: 0.88rem;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      background: rgba(9, 11, 16, 0.72);
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.68);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 200;
+    }
+
+    .modal.hidden { display: none; }
+
+    .modal-card {
+      width: min(720px, 100%);
+      background: linear-gradient(180deg, #141820, #1b202a);
+      border: 1px solid rgba(212,175,55,0.2);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .modal-head {
+      padding: 28px 28px 18px;
+      border-bottom: 1px solid var(--line);
+      text-align: center;
+    }
+
+    .modal-head h2 {
+      margin: 0;
+      font-size: 1.8rem;
+    }
+
+    .modal-head p {
+      margin: 10px auto 0;
+      color: var(--muted);
+      max-width: 560px;
+      line-height: 1.6;
+    }
+
+    .role-grid {
+      padding: 22px 28px 28px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+    }
+
+    .role-card {
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015));
+      padding: 22px;
+      cursor: pointer;
+      transition: 0.25s ease;
+      text-align: left;
+      color: var(--text);
+    }
+
+    .role-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(212,175,55,0.35);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.28);
+    }
+
+    .role-card .icon {
+      font-size: 1.8rem;
+      margin-bottom: 14px;
+    }
+
+    .role-card strong {
+      display: block;
+      font-size: 1.1rem;
+      margin-bottom: 6px;
+    }
+
+    .role-card span {
+      display: block;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 0.92rem;
+    }
+
+    .passcode-area {
+      padding: 0 28px 28px;
+      display: none;
+    }
+
+    .passcode-area.show { display: block; }
+
+    .passcode-box {
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 18px;
+      background: rgba(255,255,255,0.02);
+    }
+
+    .passcode-box label {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 0.92rem;
+      color: var(--gold-soft);
+    }
+
+    .passcode-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .passcode-row input {
+      flex: 1;
+      min-width: 180px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      padding: 13px 14px;
+      background: #0f131a;
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
+    }
+
+    .error {
+      color: var(--danger);
+      font-size: 0.88rem;
+      margin-top: 10px;
+      min-height: 18px;
+    }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 1100px) {
+      .main {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        border-right: none;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .hero-card {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .topbar, .hero, .portal-grid, .viewer-wrap, .footer {
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+
+      .brand-text h1 { font-size: 1rem; }
+      .hero-card h2 { font-size: 1.35rem; }
+      .portal-grid { grid-template-columns: 1fr; }
+      .role-grid { grid-template-columns: 1fr; }
+      .passcode-row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-badge">CM</div>
+        <div class="brand-text">
+          <h1>Chiang Mai Operations Dashboard</h1>
+          <p>Internal portal for management systems, dashboards, and future tools</p>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="role-pill" id="currentRole">Role: Not selected</div>
+        <button class="mini-btn" onclick="openRoleModal()">Change Role</button>
+      </div>
+    </header>
+
+    <div class="main">
+      <aside class="sidebar">
+        <div class="menu-title">Navigation</div>
+        <div class="menu" id="menu"></div>
+      </aside>
+
+      <section class="content">
+        <div class="hero">
+          <div class="hero-card">
+            <div>
+              <h2>Chiang Mai Operations Portal</h2>
+              <p>
+                This portal helps managers and owners open internal systems from one place. Users can launch dashboards,
+                review store performance, access upload-based tools, open Google Drive support files, and manage future
+                operational systems without searching through multiple links.
+              </p>
+            </div>
+            <div class="hero-stats">
+              <div class="stat-box">
+                <div class="label">Web Apps</div>
+                <div class="value">Open internal dashboards</div>
+              </div>
+              <div class="stat-box">
+                <div class="label">Operations</div>
+                <div class="value">Track store tools</div>
+              </div>
+              <div class="stat-box">
+                <div class="label">Resources</div>
+                <div class="value">Open Drive support files</div>
+              </div>
+              <div class="stat-box">
+                <div class="label">Access</div>
+                <div class="value">Manager / Owner based</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="portal-grid" id="portalGrid"></div>
+
+        <div class="viewer-wrap">
+          <div class="viewer-card">
+            <div class="viewer-top">
+              <div>
+                <h4 id="viewerTitle">Application Viewer</h4>
+                <p id="viewerSubtitle">Select any dashboard or system to open it here.</p>
+              </div>
+              <div>
+                <button class="btn btn-secondary" id="openNewTabBtn" onclick="openCurrentInNewTab()" disabled>Open in New Tab</button>
+              </div>
+            </div>
+
+            <div id="emptyState" class="empty-state">
+              <div class="empty-state-inner">
+                <div class="big">🖥️</div>
+                <h3 style="margin:0 0 8px; color:#fff;">Ready to launch your operational tools</h3>
+                <p style="margin:0; line-height:1.6;">
+                  Use the cards above or the left menu to open Uber, Loss, Inventory Plates, Gift Card, Clock Management,
+                  Payroll, and future App Script web apps in this portal.
+                </p>
+              </div>
+            </div>
+
+            <iframe id="appFrame" class="viewer-frame hidden" title="Chiang Mai Web App"></iframe>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <footer class="footer">
+      <div>Chiang Mai Internal Purpose Portal</div>
+      <div>Designed for operations, management access, and future internal systems</div>
+    </footer>
+  </div>
+
+  <div class="modal" id="roleModal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>Welcome to Chiang Mai Operations Portal</h2>
+        <p>
+          Please choose your access level to continue. Owner access includes the Payroll System.
+        </p>
+      </div>
+
+      <div class="role-grid">
+        <button class="role-card" onclick="setManager()">
+          <div class="icon">👨‍💼</div>
+          <strong>Manager</strong>
+          <span>Open operational dashboards and internal systems for daily business use.</span>
+        </button>
+
+        <button class="role-card" onclick="showOwnerPasscode()">
+          <div class="icon">👑</div>
+          <strong>Owner</strong>
+          <span>Access all manager tools plus the Payroll System.</span>
+        </button>
+      </div>
+
+      <div class="passcode-area" id="passcodeArea">
+        <div class="passcode-box">
+          <label for="ownerPasscode">Enter Owner Passcode</label>
+          <div class="passcode-row">
+            <input type="password" id="ownerPasscode" placeholder="Enter passcode" />
+            <button class="btn btn-primary" onclick="verifyOwner()">Unlock Owner Access</button>
+          </div>
+          <div class="error" id="passcodeError"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const OWNER_PASSCODE = '5555';
+
+    let currentRole = null;
+    let currentOpenApp = null;
+
+    const apps = [
+      {
+        id: 'uber',
+        name: 'Uber Dashboard',
+        icon: '🚚',
+        access: ['manager', 'owner'],
+        tag: 'Web App',
+        description: 'Track Uber sales, weekly performance, commissions, and operational trends.',
+        type: 'webapp',
+        url: 'https://script.google.com/macros/s/AKfycbw5tlXP_nP9_xBOEkaBxzJxLfA5Sv_3y8xD1SMdT4mTg0gpex0Wwf5AEzxfD9-gCvSG/exec'
+      },
+      {
+        id: 'loss',
+        name: 'Loss Dashboard',
+        icon: '📉',
+        access: ['manager', 'owner'],
+        tag: 'Web App',
+        description: 'Monitor losses, issues by reason, trends, and location comparison.',
+        type: 'webapp',
+        url: 'https://script.google.com/macros/s/AKfycbww3EsM-uggXZwMrm7Gw95yCUyw-_deJkD0KU1D8XUltfNPgWmwBiAw2n_SBmKkGXNc/exec'
+      },
+      {
+        id: 'plates',
+        name: 'Inventory Plates',
+        icon: '🍽️',
+        access: ['manager', 'owner'],
+        tag: 'Web App + Drive',
+        description: 'Open the inventory upload system and also access the Google Drive file users need to download and upload the google sheets into the inventory app.',
+        type: 'hybrid',
+        url: 'https://sasibbfde.github.io/Inventory_plates/',
+        driveUrl: 'https://docs.google.com/spreadsheets/d/16WJ_u4mBTvS_UO_AtxRsTy-ie4tJME0k7J2GgpT60dw/edit?usp=sharing'
+      },
+      {
+        id: 'giftcard',
+        name: 'Gift Card Dashboard',
+        icon: '🎁',
+        access: ['manager', 'owner'],
+        tag: 'Web App',
+        description: 'Manage gift card tracking, redemptions, balances, and related activity.',
+        type: 'webapp',
+        url: 'PASTE_GIFTCARD_WEBAPP_URL_HERE'
+      },
+      {
+        id: 'clock',
+        name: 'Clock Management Dashboard',
+        icon: '⏰',
+        access: ['manager', 'owner'],
+        tag: 'Web App',
+        description: 'Review time logs, clock-in issues, edits, attendance patterns, and reports.',
+        type: 'webapp',
+        url: 'PASTE_CLOCK_WEBAPP_URL_HERE'
+      },
+      {
+        id: 'payroll',
+        name: 'Payroll System',
+        icon: '💳',
+        access: ['owner'],
+        tag: 'Owner Only',
+        description: 'Owner-only access to payroll operations, reports, and employee pay tools.',
+        type: 'webapp',
+        url: 'https://www.appsheet.com/start/0e441596-c01f-4c25-af98-9ba63ae94b1a?platform=desktop#appName=Untitledspreadsheet-791923462-25-12-11&vss=H4sIAAAAAAAAA62PvQrCMBSFX0XOnCfIqg4i6qC4GIe0ucVgm5QktZaQdzf1B8GxON5z-D7Ojbhp6vdBllfwU_xeaxrAEQUOQ0sCXGBuTXC2FmACW9m8wl1vyM0W0l8KK50SSEhn9tEE8uBxkoX_ZQuDVmSCrjS5UTkKsuqN53qEc_CDIjE0XZBFTc8vMppSzipbdp7UMQ-bPsivzPLeSqM2VmVzJWtP6QFm-0mpiAEAAA==&view=Owner%20Dashboard'
+      },
+      {
+        id: 'Server Sales',
+        name: 'Server Sales',
+        icon: '👫🏾',
+        access: ['manager', 'owner'],
+        tag: 'Web Dashboard',
+        description: 'Placeholder tile for your future operational tools and web apps.',
+        type: 'placeholder',
+        url: 'https://lookerstudio.google.com/reporting/6319f85a-f189-40da-85f9-485bada8381b'
+      }
+    {
+     id: 'Sales Dashbaord',
+     name: 'Sales Dashbaord',
+     icon: '💵💰💳',
+     access: ['manager', 'owner'],
+     tag: 'Web Dashbaord',
+     description: 'Placeholder tile for your future operational tools and web apps.',
+     type: 'placeholder',
+     url: 'https://lookerstudio.google.com/reporting/86b42f76-26af-4a6e-9c62-033df140d36b'
+     }
+    {
+     id: 'future1',
+     name: 'Future System 01',
+     icon: '🧩',
+     access: ['manager', 'owner'],
+     tag: 'Coming Soon',
+     description: 'Placeholder tile for your future operational tools and web apps.',
+     type: 'placeholder',
+     url: ''
+    ];
+
+    function openRoleModal() {
+      document.getElementById('roleModal').classList.remove('hidden');
+      document.getElementById('passcodeArea').classList.remove('show');
+      document.getElementById('passcodeError').textContent = '';
+      document.getElementById('ownerPasscode').value = '';
+    }
+
+    function closeRoleModal() {
+      document.getElementById('roleModal').classList.add('hidden');
+    }
+
+    function showOwnerPasscode() {
+      document.getElementById('passcodeArea').classList.add('show');
+      document.getElementById('passcodeError').textContent = '';
+      setTimeout(() => document.getElementById('ownerPasscode').focus(), 50);
+    }
+
+    function setManager() {
+      currentRole = 'manager';
+      updateRoleUI();
+      renderPortal();
+      closeRoleModal();
+    }
+
+    function verifyOwner() {
+      const entered = document.getElementById('ownerPasscode').value.trim();
+      const errorEl = document.getElementById('passcodeError');
+
+      if (entered === OWNER_PASSCODE) {
+        currentRole = 'owner';
+        updateRoleUI();
+        renderPortal();
+        closeRoleModal();
+      } else {
+        errorEl.textContent = 'Incorrect passcode. Please try again.';
+      }
+    }
+
+    function updateRoleUI() {
+      const roleLabel = currentRole === 'owner' ? 'Owner' : 'Manager';
+      document.getElementById('currentRole').textContent = 'Role: ' + roleLabel;
+    }
+
+    function getAccessibleApps() {
+      return apps.filter(app => currentRole && app.access.includes(currentRole));
+    }
+
+    function renderPortal() {
+      renderMenu();
+      renderCards();
+    }
+
+    function renderMenu() {
+      const menu = document.getElementById('menu');
+      const accessibleApps = getAccessibleApps();
+
+      menu.innerHTML = accessibleApps.map((app) => `
+        <button class="menu-btn" onclick="focusApp('${app.id}', true)">
+          <div class="menu-icon">${app.icon}</div>
+          <div class="menu-text">
+            <strong>${app.name}</strong>
+            <span>${app.tag}</span>
+          </div>
+        </button>
+      `).join('');
+    }
+
+    function renderCards() {
+      const grid = document.getElementById('portalGrid');
+      const accessibleApps = getAccessibleApps();
+
+      grid.innerHTML = accessibleApps.map(app => {
+        const driveButton = app.type === 'hybrid'
+          ? `<button class="btn btn-secondary" onclick="openDriveLink('${app.id}')">Open Drive Link</button>`
+          : '';
+
+        const mainActionLabel = app.type === 'placeholder' ? 'Preview' : 'Open Here';
+
+        return `
+          <div class="portal-card">
+            <div class="portal-head">
+              <div class="portal-icon">${app.icon}</div>
+              <div class="portal-tag">${app.tag}</div>
+            </div>
+            <div>
+              <h3>${app.name}</h3>
+              <p>${app.description}</p>
+            </div>
+            <div class="portal-actions">
+              <button class="btn btn-primary" onclick="focusApp('${app.id}')">${mainActionLabel}</button>
+              ${driveButton}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function focusApp(appId, fromMenu = false) {
+      const app = apps.find(a => a.id === appId);
+      if (!app) return;
+
+      document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
+      const clicked = Array.from(document.querySelectorAll('.menu-btn')).find(btn => btn.textContent.includes(app.name));
+      if (clicked) clicked.classList.add('active');
+
+      currentOpenApp = app;
+      document.getElementById('viewerTitle').textContent = app.name;
+      document.getElementById('viewerSubtitle').textContent = app.description;
+      document.getElementById('openNewTabBtn').disabled = !app.url;
+
+      const frame = document.getElementById('appFrame');
+      const empty = document.getElementById('emptyState');
+
+      if (app.type === 'placeholder' || !app.url) {
+        frame.classList.add('hidden');
+        frame.src = '';
+        empty.classList.remove('hidden');
+        empty.innerHTML = `
+          <div class="empty-state-inner">
+            <div class="big">🧩</div>
+            <h3 style="margin:0 0 8px; color:#fff;">${app.name}</h3>
+            <p style="margin:0; line-height:1.6;">This tile is reserved for a future internal tool. Replace this placeholder with your new App Script web app URL anytime.</p>
+          </div>
+        `;
+      } else {
+        empty.classList.add('hidden');
+        frame.classList.remove('hidden');
+        frame.src = app.url;
+      }
+
+      const viewer = document.querySelector('.viewer-wrap');
+      if (viewer) {
+        viewer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    function openDriveLink(appId) {
+      const app = apps.find(a => a.id === appId);
+      if (app && app.driveUrl) {
+        window.open(app.driveUrl, '_blank');
+      } else {
+        alert('Drive link is not added yet.');
+      }
+    }
+
+    function openCurrentInNewTab() {
+      if (currentOpenApp && currentOpenApp.url) {
+        window.open(currentOpenApp.url, '_blank');
+      }
+    }
+
+    document.getElementById('ownerPasscode').addEventListener('keydown', function(event) {
+      if (event.key === 'Enter') verifyOwner();
+    });
+
+    openRoleModal();
+  </script>
+</body>
+</html>
